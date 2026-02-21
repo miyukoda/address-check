@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バクアゲ住所チェック | Shopify向け住所バリデーションアプリ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF4000;
+            --primary-hover: #E63900;
+            --bg-white: #FFFFFF;
+            --bg-light: #F8F9FA;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            --border-color: #E5E7EB;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            color: var(--text-main);
+            background-color: var(--bg-white);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--bg-white);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            box-shadow: 0 4px 12px rgba(255, 64, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-light);
+            transform: translateY(-2px);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        .section-title span {
+            color: var(--primary);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section {
+            padding: 80px 0;
+        }
+
+        .bg-light {
+            background-color: var(--bg-light);
+        }
+
+        /* -----------------------------------
+           1. Header
+        ------------------------------------ */
+        header {
+            position: sticky;
+            top: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 100;
+            padding: 16px 0;
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo::before {
+            content: '';
+            display: block;
+            width: 24px;
+            height: 24px;
+            background-color: var(--primary);
+            border-radius: 6px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* -----------------------------------
+           2. Hero Section
+        ------------------------------------ */
+        .hero {
+            padding: 100px 0;
+            overflow: hidden;
+        }
+
+        .hero-inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+        }
+
+        .hero-content p {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            line-height: 1.8;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .hero-image-wrapper {
+            position: relative;
+            background: linear-gradient(135deg, var(--bg-light) 0%, #E5E7EB 100%);
+            border-radius: 20px;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--shadow-xl);
+            aspect-ratio: 4/3;
+        }
+
+        .hero-mockup {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .hero-mockup-header {
+            background-color: #F3F4F6;
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 6px;
+        }
+
+        .hero-mockup-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #D1D5DB;
+        }
+
+        .hero-mockup-body {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background-color: #FAFAFA;
+        }
+
+        .mockup-error-alert {
+            background-color: #FFF1F2;
+            border: 1px solid #FECDD3;
+            color: #E11D48;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* -----------------------------------
+           3. Before/After Section
+        ------------------------------------ */
+        .ba-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+        }
+
+        .ba-card {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .ba-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .ba-item {
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .ba-before {
+            background-color: #F3F4F6;
+            color: var(--text-muted);
+            border-left: 4px solid #9CA3AF;
+        }
+
+        .ba-arrow {
+            display: flex;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .ba-after {
+            background-color: #FFF5F2;
+            color: var(--text-main);
+            border-left: 4px solid var(--primary);
+            font-weight: 500;
+        }
+
+        .ba-title {
+            font-weight: 700;
+            font-size: 1.25rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        /* -----------------------------------
+           4. Features Section
+        ------------------------------------ */
+        .feature-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            margin-bottom: 100px;
+        }
+
+        .feature-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .feature-row:nth-child(even) .feature-content {
+            order: 2;
+        }
+
+        .feature-row:nth-child(even) .feature-image {
+            order: 1;
+        }
+
+        .feature-label {
+            display: inline-block;
+            background-color: rgba(255, 64, 0, 0.1);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .feature-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            line-height: 1.3;
+        }
+
+        .feature-desc {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        .feature-image {
+            background-color: #F3F4F6;
+            border-radius: 20px;
+            padding: 30px;
+            aspect-ratio: 4/3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .mock-ui {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9CA3AF;
+            font-weight: 500;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* -----------------------------------
+           5. Pricing Section
+        ------------------------------------ */
+        .pricing-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .tabs-wrapper {
+            background-color: #F3F4F6;
+            padding: 6px;
+            border-radius: 30px;
+            display: inline-flex;
+        }
+
+        .tab-btn {
+            padding: 12px 32px;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--bg-white);
+            color: var(--text-main);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px 32px;
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .pricing-card.popular {
+            border: 2px solid var(--primary);
+            box-shadow: 0 10px 25px rgba(255, 64, 0, 0.1);
+            transform: scale(1.02);
+        }
+
+        .pricing-card.popular:hover {
+            transform: scale(1.02) translateY(-5px);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--primary);
+            color: white;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .plan-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+        }
+
+        .plan-price span {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .plan-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 32px;
+        }
+
+        .plan-features {
+            text-align: left;
+            margin-bottom: 32px;
+            flex: 1;
+        }
+
+        .plan-features li {
+            margin-bottom: 16px;
+            padding-left: 28px;
+            position: relative;
+            font-size: 0.95rem;
+        }
+
+        .plan-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .pricing-note {
+            text-align: center;
+            margin-top: 32px;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* -----------------------------------
+           6. How to use Step Section
+        ------------------------------------ */
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            position: relative;
+        }
+
+        /* Connecting line */
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 100px;
+            right: 100px;
+            height: 2px;
+            background-color: #E5E7EB;
+            z-index: 0;
+        }
+
+        .step-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px 24px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin: 0 auto 24px auto;
+            box-shadow: 0 0 0 8px var(--bg-white);
+        }
+
+        .step-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .step-desc {
+            color: var(--text-muted);
+        }
+
+        /* -----------------------------------
+           7. FAQ Section
+        ------------------------------------ */
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            background: var(--bg-white);
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 24px;
+            font-weight: 600;
+            font-size: 1.125rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .faq-question:hover {
+            background-color: var(--bg-light);
+        }
+
+        .faq-icon {
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: light;
+            transition: transform 0.3s;
+        }
+
+        /* Simulating open state for one item */
+        .faq-item.active .faq-icon {
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            padding: 0 24px 24px 24px;
+            color: var(--text-muted);
+            line-height: 1.7;
+            display: none;
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+
+        /* -----------------------------------
+           8. Footer
+        ------------------------------------ */
+        footer {
+            background-color: #111827;
+            color: #D1D5DB;
+            padding: 80px 0 40px 0;
+        }
+
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+            gap: 40px;
+        }
+
+        .footer-brand {
+            max-width: 300px;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-logo::before {
+            content: '';
+            display: block;
+            width: 24px;
+            height: 24px;
+            background-color: var(--primary);
+            border-radius: 6px;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-links a {
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #374151;
+            padding-top: 32px;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+
+            .hero-inner,
+            .feature-row,
+            .steps-container {
+                grid-template-columns: 1fr;
+            }
+
+            .steps-container::before {
+                display: none;
+            }
+
+            .feature-row:nth-child(even) .feature-image {
+                order: unset;
+            }
+
+            .feature-row:nth-child(even) .feature-content {
+                order: unset;
+            }
+
+            .ba-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero-content h1 {
+                font-size: 2.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 1. Header -->
+    <header>
+        <div class="container header-inner">
+            <div class="logo">バクアゲ住所チェック</div>
+            <nav class="nav-links">
+                <a href="#problem">課題と解決</a>
+                <a href="#features">機能紹介</a>
+                <a href="#pricing">料金プラン</a>
+                <a href="#steps">導入手順</a>
+                <a href="#faq">よくある質問</a>
+            </nav>
+            <a href="#" class="btn btn-primary">7日間の無料トライアル</a>
+        </div>
+    </header>
+
+    <!-- 2. Hero Section -->
+    <section class="hero bg-light">
+        <div class="container hero-inner">
+            <div class="hero-content">
+                <h1>顧客の住所入力ミスを自動で防ぎ、配送手配のストレスをゼロに。</h1>
+                <p>Shopify（Plus / Not Plus）に完全対応した住所バリデーションアプリ。<br>独自ドメインのECサイトにも導入可能。誤配送やWMS連携エラーを未然に防ぎます。</p>
+                <div class="hero-buttons">
+                    <a href="#" class="btn btn-primary">7日間の無料トライアルを始める</a>
+                    <a href="#" class="btn btn-secondary">無料でインストール</a>
+                </div>
+            </div>
+            <div class="hero-image-wrapper">
+                <div class="hero-mockup">
+                    <div class="hero-mockup-header">
+                        <div class="hero-mockup-dot" style="background-color: #EF4444;"></div>
+                        <div class="hero-mockup-dot" style="background-color: #F59E0B;"></div>
+                        <div class="hero-mockup-dot" style="background-color: #10B981;"></div>
+                    </div>
+                    <div class="hero-mockup-body">
+                        <!-- Mockup of Checkout Error -->
+                        <div style="height: 20px; width: 60%; background: #E5E7EB; border-radius: 4px;"></div>
+                        <div
+                            style="height: 40px; width: 100%; border: 1px solid #E5E7EB; border-radius: 6px; background: white;">
+                        </div>
+
+                        <div class="mockup-error-alert">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            番地の入力が不足しています。
+                        </div>
+
+                        <div
+                            style="height: 40px; width: 100%; border: 1px solid #FECDD3; border-radius: 6px; background: #FFF1F2; margin-top: -8px;">
+                        </div>
+                        <div
+                            style="height: 40px; width: 100%; background: #E5E7EB; border-radius: 6px; margin-top: 16px;">
+                        </div>
+
+                        <!-- Optionally represent "2025年内無料 バクアゲ住所チェック" banner -->
+                        <div
+                            style="margin-top: auto; background: #2563EB; color: white; padding: 12px; text-align: center; border-radius: 8px; font-weight: bold; font-size: 0.9rem;">
+                            ✨ 2025年内無料 バクアゲ住所チェック
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Before/After Section -->
+    <section id="problem" class="section">
+        <div class="container">
+            <h2 class="section-title">EC運営の<span>「住所のミス」</span>による悩みを解決</h2>
+            <p class="section-subtitle">日々の発送業務で発生する見えないコストやストレスを、バクアゲ住所チェックが自動でブロックします。</p>
+
+            <div class="ba-grid">
+                <!-- Card 1 -->
+                <div class="ba-card">
+                    <h3 class="ba-title">❌ WMS連携エラー</h3>
+                    <div class="ba-item ba-before">
+                        <strong>Before</strong><br>
+                        約15%の注文で文字数・形式エラーが発生し、手作業で修正...
+                    </div>
+                    <div class="ba-arrow">↓</div>
+                    <div class="ba-item ba-after">
+                        <strong>After</strong><br>
+                        購入時に自動チェックし、連携エラーがほぼ0（1%未満）に！
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="ba-card">
+                    <h3 class="ba-title">📞 CS対応コスト</h3>
+                    <div class="ba-item ba-before">
+                        <strong>Before</strong><br>
+                        番地抜け等の確認で、毎月約20時間の顧客対応が発生...
+                    </div>
+                    <div class="ba-arrow">↓</div>
+                    <div class="ba-item ba-after">
+                        <strong>After</strong><br>
+                        不備がある場合は決済へ進めないため、確認作業が月2時間に激減！
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="ba-card">
+                    <h3 class="ba-title">📦 返送コスト</h3>
+                    <div class="ba-item ba-before">
+                        <strong>Before</strong><br>
+                        誤配送による返送・再送費用が毎月数万円発生...
+                    </div>
+                    <div class="ba-arrow">↓</div>
+                    <div class="ba-item ba-after">
+                        <strong>After</strong><br>
+                        不一致チェックで誤配送を未然に防ぎ、無駄なコストを大幅カット！
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Features Section -->
+    <section id="features" class="section bg-light">
+        <div class="container">
+            <h2 class="section-title">バクアゲ住所チェックの<span>強力な機能</span></h2>
+            <p class="section-subtitle">Shopifyのチェックアウト画面にシームレスに統合。強力なバリデーションを提供します。</p>
+
+            <!-- Feature 1 -->
+            <div class="feature-row">
+                <div class="feature-content">
+                    <span class="feature-label">機能 1</span>
+                    <h3 class="feature-title">確実なバリデーション機能</h3>
+                    <p class="feature-desc">文字数制限（1行目35文字以下など）、禁止文字チェック、番地欠落・空欄チェックなど、日本・海外向けの形式エラーを網羅。入力段階で確実にガードします。
+                    </p>
+                </div>
+                <div class="feature-image">
+                    <div class="mock-ui">
+                        [画像モック]<br>
+                        Shopifyチェックアウト画面<br>
+                        アプリブロック追加/設定画面
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="feature-row">
+                <div class="feature-content">
+                    <span class="feature-label">機能 2</span>
+                    <h3 class="feature-title">Plus限定の高度なエラー防止</h3>
+                    <p class="feature-desc">郵便番号と住所の不一致・存在チェック、電話番号バリデーションなど、さらに高度な機能で決済前のエラーを防ぎます。チェックアウトルールに柔軟に対応。</p>
+                </div>
+                <div class="feature-image">
+                    <div class="mock-ui">
+                        [画像モック]<br>
+                        Shopify管理画面<br>
+                        チェックアウトルール設定画面
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="feature-row">
+                <div class="feature-content">
+                    <span class="feature-label">機能 3</span>
+                    <h3 class="feature-title">安心の上限アラート機能</h3>
+                    <p class="feature-desc">月間利用上限の80%、90%に達した段階で管理者画面にお知らせバナーを表示。知らない間に突然機能が止まる心配がありません。</p>
+                </div>
+                <div class="feature-image">
+                    <div class="mock-ui" style="background: #FEF3C7; border-color: #FDE68A; color: #D97706;">
+                        <span style="font-weight: 700;">⚠️ 月間利用上限が近づいています（80%）</span><br><br>
+                        [画像モック]<br>
+                        Shopify管理画面上部<br>
+                        アラートバナー
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Pricing Section -->
+    <section id="pricing" class="section">
+        <div class="container">
+            <h2 class="section-title">シンプルで<span>わかりやすい</span>料金プラン</h2>
+            <p class="section-subtitle">ストアの規模に合わせた最適なプランをお選びいただけます。</p>
+
+            <div class="pricing-tabs">
+                <div class="tabs-wrapper">
+                    <button class="tab-btn active">Not Plus向け</button>
+                    <button class="tab-btn">Plus向け</button>
+                </div>
+            </div>
+
+            <!-- Not Plus Pricing Grid (Visible by default) -->
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="plan-name">Free</div>
+                    <div class="plan-price">$0<span>/月</span></div>
+                    <div class="plan-desc">スモールスタート向け</div>
+                    <ul class="plan-features">
+                        <li>月間1,000件まで</li>
+                        <li>形式チェックのみ</li>
+                        <li>基本サポート</li>
+                    </ul>
+                    <a href="#" class="btn btn-secondary" style="width: 100%;">無料で始める</a>
+                </div>
+
+                <div class="pricing-card popular">
+                    <div class="popular-badge">おすすめ</div>
+                    <div class="plan-name">Pro Standard</div>
+                    <div class="plan-price">$49<span>/月</span></div>
+                    <div class="plan-desc">本格的なEC運営に</div>
+                    <ul class="plan-features">
+                        <li>件数 <strong style="color: var(--primary);">無制限</strong></li>
+                        <li>形式チェックのみ</li>
+                        <li>優先サポート</li>
+                    </ul>
+                    <a href="#" class="btn btn-primary" style="width: 100%;">7日間の無料トライアル</a>
+                </div>
+            </div>
+
+            <p class="pricing-note">※すべての有料プランに7日間のトライアル期間があります。</p>
+
+            <!-- Note for Wireframe: Plus Pricing Grid would toggle via JS. 
+                 Data: Free ($0/1000), Pro ($49/1万), Pro Premium ($120/5万), Enterprise Tier1 ($199/無制限) 
+            -->
+        </div>
+    </section>
+
+    <!-- 6. How to use Step Section -->
+    <section id="steps" class="section bg-light">
+        <div class="container">
+            <h2 class="section-title"><span>3ステップ</span>で簡単導入</h2>
+            <p class="section-subtitle">開発不要。数分であなたのShopifyストアに導入完了します。</p>
+
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">アプリをインストール</h3>
+                    <p class="step-desc">Shopify App Storeから「バクアゲ住所チェック」を追加し、管理画面から初期設定を行います。</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">ブロック・ルールを追加</h3>
+                    <p class="step-desc">チェックアウト設定からアプリブロックやバリデーションルールを追加・配置します。</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">有効化して利用開始！</h3>
+                    <p class="step-desc">設定を保存して有効化すれば、その瞬間から住所チェックが稼働します。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. FAQ Section -->
+    <section id="faq" class="section">
+        <div class="container">
+            <h2 class="section-title">よくあるご質問</h2>
+            <p class="section-subtitle">導入に関する疑問にお答えします。</p>
+
+            <div class="faq-container">
+                <div class="faq-item active">
+                    <div class="faq-question">
+                        Plusプランでなくても使えますか？
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        はい、ご利用いただけます。Not Plusプラン向けの機能として、アプリブロックを使用した形式チェック（文字数制限や禁止文字など）に対応しております。
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        独自ドメインのECサイトにも導入できますか？
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Shopifyにて構築されているストアであれば、独自ドメインを設定していても問題なく導入・稼働いたします。
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        トライアル期間中の解約は可能ですか？
+                        <span class="faq-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        はい、可能です。7日間の無料トライアル期間中にアンインストールしていただければ、料金は一切発生いたしません。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <div class="footer-logo">バクアゲ住所チェック</div>
+                    <p style="font-size: 0.95rem; color: #9CA3AF; margin-top: 16px;">
+                        顧客の住所入力ミスを自動で防ぎ、<br>配送手配のストレスをゼロにするShopifyアプリ。
+                    </p>
+                </div>
+
+                <div class="footer-links">
+                    <h4 style="color: white; margin-bottom: 12px;">リンク</h4>
+                    <a href="#">特定商取引法に基づく表記</a>
+                    <a href="#">プライバシーポリシー</a>
+                    <a href="#">利用規約</a>
+                    <a href="#">お問い合わせ</a>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                &copy; 2025 バクアゲ住所チェック. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Simple JS for FAQ accordion wireframe interaction -->
+    <script>
+        document.querySelectorAll('.faq-question').forEach(item => {
+            item.addEventListener('click', event => {
+                const parent = item.parentElement;
+                parent.classList.toggle('active');
+
+                // Toggle icon
+                const icon = item.querySelector('.faq-icon');
+                if (parent.classList.contains('active')) {
+                    icon.style.transform = 'rotate(45deg)';
+                } else {
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            })
+        })
+    </script>
+</body>
+
+</html>
